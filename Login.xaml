@@ -25,8 +25,7 @@
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
+                
             </Grid.RowDefinitions>
             
             <Grid Grid.Row="0">
@@ -47,15 +46,16 @@
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
+                        
                         <ColumnDefinition Width="*"/>
+                        
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" Text=""/>
-                    <PasswordBox Grid.Column="2" />
-                    <Button x:Name="btnLogin" Grid.Column="3" Content="Login" Margin="5,0,5,0"/>
-                        <Button x:Name="btnAuslogen" Grid.Column="4" Content="Auslogen" Visibility="Hidden"/>
+                    <TextBox Grid.Column="0" Text="" FontSize="14" Margin="0,0,5,0" />
+                        <PasswordBox Grid.Column="1" FontSize="14" Margin="5,0,5,0"/>
+                    <Button x:Name="btnLogin" Grid.Column="2" Content="Login" Margin="5,0,5,0"/>
+                        <Button x:Name="btnAuslogen" Grid.Column="3" Content="Auslogen" Visibility="Hidden" Margin="5,0,0,0"/>
                     </Grid>
             </Grid>
         </Grid>
