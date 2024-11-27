@@ -53,7 +53,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" Text=""/>
-                    <TextBox Grid.Column="2" Text=""/>
+                    <PasswordBox Grid.Column="2" />
                     <Button x:Name="btnLogin" Grid.Column="3" Content="Login" Margin="5,0,5,0"/>
                         <Button x:Name="btnAuslogen" Grid.Column="4" Content="Auslogen" Visibility="Hidden"/>
                     </Grid>

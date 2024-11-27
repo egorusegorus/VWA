@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VWA"
         mc:Ignorable="d"
-        Title="VWA" Height="490" Width="1200">
+        Title="VWA" Height="490" Width="1200" Icon="/Smesser3.png">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>
