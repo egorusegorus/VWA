@@ -1,0 +1,1 @@
+﻿Server=localhost;Uid=root;Pwd=pa$$w0rd;Database=telefonbuch;Port=3306
