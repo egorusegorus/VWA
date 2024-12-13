@@ -24,7 +24,7 @@
                 <RowDefinition Height="60"></RowDefinition>
             </Grid.RowDefinitions>
             <Button x:Name="Login" Content="Login" Grid.Row="0" HorizontalAlignment="Stretch" Click="Login_Click"/>
-            <Button x:Name="Ausrüstungsmanagement" Content="Ausrüstungsmanagement" Grid.Row="1" HorizontalAlignment="Stretch" IsEnabled="False"/>
+            <Button x:Name="Ausrüstungsmanagement" Content="Ausrüstungsmanagement" Grid.Row="1" HorizontalAlignment="Stretch" IsEnabled="False" Click="Ausrüstungsmanagement_Click"/>
             <!-- <Button x:Name="ZukunftigeModule" Content="Zukunftige Module" Grid.Row="2" HorizontalAlignment="Stretch" IsEnabled="False"/> -->
         </Grid>
         

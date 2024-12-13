@@ -17,11 +17,12 @@ namespace VWA
     public partial class MainWindow : Window
        
     {
-        Login login = new Login();
+        // Login login = new Login();
+        public string role;
         public MainWindow()
         {
             InitializeComponent();
-            ContentPlaceholder.Content = new Login();
+            ContentPlaceholder.Content = new Login(this);
 
         }
 
@@ -29,5 +30,13 @@ namespace VWA
         {
             
         }
-    }
+
+		private void Ausrüstungsmanagement_Click(object sender, RoutedEventArgs e)
+		{
+            if (role.Equals("admin_a_role") || role.Equals("admin_a_role")) 
+            { }
+            else if (role.Equals("benutzer_role")) 
+            { }
+		}
+	}
 }

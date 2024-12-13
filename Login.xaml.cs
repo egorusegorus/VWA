@@ -29,10 +29,13 @@ namespace VWA
 	public partial class Login : UserControl
 	{
 		SecureString secure;
-		public Login()
+		private MainWindow _mainWindow;
+		public Login(MainWindow mainWindow)
 		{
 			InitializeComponent();
+			_mainWindow = mainWindow;
 		}
+		
 
 		private void btnLogin_Click(object sender, RoutedEventArgs e)
 		{
@@ -48,7 +51,13 @@ namespace VWA
 			ConnectToDB connectToDB = new ConnectToDB();
 			//connectToDB.ConnectToDB1(connectionString);
 			string Role =connectToDB.ShowRole(connectionString);
-			
+			connectionString=null;
+			if(Role!=null) { 
+				_mainWindow.Ausrüstungsmanagement.IsEnabled = true; 
+				_mainWindow.role=Role;
+				txtPassword.Password = "";
+				txtUser.Text = "";
+			}
 		}
 
 	}
