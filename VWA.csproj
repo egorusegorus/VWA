@@ -11,16 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SConfig.txt" />
     <None Remove="Smesser3.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="SM.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="SConfig.txt" />
   </ItemGroup>
 
   <ItemGroup>
