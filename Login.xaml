@@ -11,7 +11,7 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="30"></RowDefinition>
         </Grid.RowDefinitions>
-        <Label x:Name="bottomPanel" Grid.Row="1" HorizontalAlignment="Stretch" Content="Bottom Panel"/>
+        <Label x:Name="bottomPanel" Grid.Row="1" HorizontalAlignment="Stretch" Content=""/>
         <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"></ColumnDefinition>

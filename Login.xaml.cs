@@ -23,9 +23,7 @@ using NPoco;
 
 namespace VWA
 {
-	/// <summary>
-	/// Interaktionslogik für Login.xaml
-	/// </summary>
+	
 	public partial class Login : UserControl
 	{
 		SecureString secure;

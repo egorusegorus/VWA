@@ -23,6 +23,7 @@ namespace VWA
         {
             InitializeComponent();
             ContentPlaceholder.Content = new Login(this);
+            
 
         }
 
@@ -33,10 +34,23 @@ namespace VWA
 
 		private void Ausrüstungsmanagement_Click(object sender, RoutedEventArgs e)
 		{
-            if (role.Equals("admin_a_role") || role.Equals("admin_a_role")) 
-            { }
-            else if (role.Equals("benutzer_role")) 
-            { }
+			
+            role=role.Trim();
+			if (role != null) {
+
+
+
+                if (role.Equals("admin_b_role") || role.Equals("admin_a_role"))
+                {
+					ContentPlaceholder.Content = new Aam(this);
+					ContentPlaceholder.InvalidateVisual();
+				}else
+                if (role== "benutzer_role") 
+            {
+                    ContentPlaceholder.Content = new Bam(this);
+					ContentPlaceholder.InvalidateVisual();
+				}
+		}
 		}
 	}
 }
