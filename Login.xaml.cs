@@ -32,6 +32,7 @@ namespace VWA
 		{
 			InitializeComponent();
 			_mainWindow = mainWindow;
+			if (_mainWindow.secureString != null) { btnAuslogen.Visibility = Visibility.Visible; }
 		}
 		
 
@@ -46,18 +47,26 @@ namespace VWA
 									  + fileEncription.DecryptFileToString("SConfig4E.txt", "YourPassword")
 									  + fileEncription.DecryptFileToString("SConfig5E.txt", "YourPassword");
 			secure = fileEncription.ToSecureString(connectionString);
+			_mainWindow.secureString = secure;
 			ConnectToDB connectToDB = new ConnectToDB();
 			//connectToDB.ConnectToDB1(connectionString);
 			string Role =connectToDB.ShowRole(connectionString);
 			connectionString=null;
 			if(Role!=null) { 
-				_mainWindow.Ausrüstungsmanagement.IsEnabled = true; 
+				_mainWindow.Ausruestungsmanagement.IsEnabled = true; 
 				_mainWindow.role=Role;
 				txtPassword.Password = "";
 				txtUser.Text = "";
 			}
 		}
 
+		private void btnAuslogen_Click(object sender, RoutedEventArgs e)
+		{
+			secure = null;
+			_mainWindow.secureString = null;
+			_mainWindow.Ausruestungsmanagement.IsEnabled = false;
+			btnAuslogen.Visibility = Visibility.Hidden;
+		}
 	}
 }
 
