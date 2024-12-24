@@ -356,107 +356,106 @@ namespace VWA
 			EnableHinzufuegen();
 		}
 
-		private void btnBenutzerHinZuFuegen_Click(object sender, RoutedEventArgs e)
-		{
-		
-			try
-			{
+        private void btnBenutzerHinZuFuegen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
 
-				FileEncription fileEncription = new FileEncription();
-				string connectionString = fileEncription.ConvertToPlainString(secureString);
+                string benutzername = txtBoxBenutzername.Text.Trim();
+                string email = txtBoxEmail.Text.Trim();
+                string nachname = txtBoxNachname.Text.Trim();
+                string vorname = txtBoxVorname.Text.Trim();
+                string password = PasswordBox.Password.Trim();
+                string geaendert_von = "system";
+                DateTime dateTime = DateTime.Now;
 
-			
+                if (string.IsNullOrWhiteSpace(benutzername) || string.IsNullOrWhiteSpace(email) ||
+                    string.IsNullOrWhiteSpace(nachname) || string.IsNullOrWhiteSpace(vorname) || string.IsNullOrWhiteSpace(password))
+                {
+                    MessageBox.Show("Alle Felder müssen ausgefüllt sein!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-				string benutzername = txtBoxBenutzername.Text;
-				string email = txtBoxEmail.Text;
-				string nachname = txtBoxNachname.Text;
-				string vorname = txtBoxVorname.Text;
-				string password = PasswordBox.Password;
-				string geaendert_von = "system";
-				DateTime dateTime = DateTime.Now;
+                InsertUserToDatabase(connectionString, benutzername, nachname, vorname, email, geaendert_von, dateTime);
+                CreateMysqlUser(connectionString, benutzername, password);
+                GrantPermissions(connectionString, benutzername);
 
-				if (string.IsNullOrWhiteSpace(benutzername) || string.IsNullOrWhiteSpace(email) ||
-					string.IsNullOrWhiteSpace(nachname) || string.IsNullOrWhiteSpace(vorname) || string.IsNullOrWhiteSpace(password))
-				{
-					MessageBox.Show("Alle Fehlder müssen voll sein!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
-				}
+                MessageBox.Show("Benutzer erfolgreich hinzugefügt!", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fehler: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                Clipboard.SetText(ex.ToString());
+            }
 
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
+            ClearFields();
+            btnBenutzerHinZuFuegen.IsEnabled = true;
+        }
 
-					string query = @"
-            INSERT INTO benutzer (Benutzername, Nachname, Vorname, Email, Geaendert_Von, Geaendert_Am)
-            VALUES (@Benutzername, @Nachname, @Vorname, @Email, @Geaendert_Von, @Geaendert_Am);
-            ";
+        private void InsertUserToDatabase(string connectionString, string benutzername, string nachname, string vorname, string email, string geaendert_von, DateTime geaendert_am)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"INSERT INTO benutzer (Benutzername, Nachname, Vorname, Email, Geaendert_Von, Geaendert_Am)
+                         VALUES (@Benutzername, @Nachname, @Vorname, @Email, @Geaendert_Von, @Geaendert_Am);";
 
-					using (var cmd = new MySqlCommand(query, connection))
-					{
-						cmd.Parameters.AddWithValue("@Benutzername", benutzername);
-						cmd.Parameters.AddWithValue("@Nachname", nachname);
-						cmd.Parameters.AddWithValue("@Vorname", vorname);
-						cmd.Parameters.AddWithValue("@Email", email);
-						cmd.Parameters.AddWithValue("@Geaendert_Von", geaendert_von);
-						cmd.Parameters.AddWithValue("@Geaendert_Am", dateTime);
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@Benutzername", benutzername);
+                    cmd.Parameters.AddWithValue("@Nachname", nachname);
+                    cmd.Parameters.AddWithValue("@Vorname", vorname);
+                    cmd.Parameters.AddWithValue("@Email", email);
+                    cmd.Parameters.AddWithValue("@Geaendert_Von", geaendert_von);
+                    cmd.Parameters.AddWithValue("@Geaendert_Am", geaendert_am);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-						
-						int rowsAffected = cmd.ExecuteNonQuery();
+        private void CreateMysqlUser(string connectionString, string benutzername, string password)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = "CREATE USER @Benutzername@localhost IDENTIFIED BY @Password;";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@Benutzername", benutzername);
+                    cmd.Parameters.AddWithValue("@Password", password);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-						if (rowsAffected > 0)
-						{
-							Console.WriteLine("Well Done");
-						}
-						else
-						{
-							Console.WriteLine("Error 1");
-							return;
-						}
-					}
-				}
+        private void GrantPermissions(string connectionString, string benutzername)
+        {
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+            GRANT SELECT, INSERT, UPDATE, DELETE ON VWA.* TO @Benutzername@localhost;
+            GRANT benutzer_role TO @Benutzername@localhost;";
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@Benutzername", benutzername);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-				// Tworzenie użytkownika w MySQL i przyznawanie uprawnień
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
+        private void ClearFields()
+        {
+            txtBoxBenutzername.Clear();
+            txtBoxEmail.Clear();
+            txtBoxNachname.Clear();
+            txtBoxVorname.Clear();
+            PasswordBox.Clear();
+        }
 
-					// Tworzenie użytkownika MySQL
-					string createUserQuery = $"CREATE USER '{benutzername}'@'%' IDENTIFIED BY '{password}';" +
-						$"GRANT SELECT, INSERT,UPDATE, DELETE ON VWA.* TO '{benutzername}'@'%';" +
-						$"GRANT benutzer_role TO '{benutzername}'@'%';FLUSH PRIVILEGES;";
-
-					//using (MySqlCommand Command = new MySqlCommand(createUserQuery, connection)) ;
-
-					using (var cmd = new MySqlCommand(createUserQuery, connection))
-					{
-						cmd.ExecuteNonQuery();
-						Console.WriteLine("Well done");
-					}
-				}
-
-				MessageBox.Show("Well done", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			catch (Exception ex)
-			{
-				
-				MessageBox.Show($"Welldone: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-
-			
-			txtBoxBenutzername.Text = null;
-			txtBoxEmail.Text = null;
-			txtBoxNachname.Text = null;
-			txtBoxVorname.Text = null;
-			PasswordBox.Password = null;
-
-			btnBenutzerHinZuFuegen.IsEnabled = false;
-			btnBenutzerLöschen.IsEnabled = false;
-			btnBenutzerBearbeiten.IsEnabled = false;
-
-			LoadDate();
-		}
-
-	}
+    }
 }
 	
 	
