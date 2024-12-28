@@ -37,7 +37,7 @@
                             <Button Grid.Column="0" x:Name="btnBenutzerBearbeiten" Margin="5,0,3,0" Content="Änderungen speichern" IsEnabled="False" Click="btnBenutzerBearbeiten_Click"></Button>
                             <TextBox x:Name="txtBoxEmail" Grid.Column="1" Margin="5,0,0,0" TextChanged="txtBoxEmail_TextChanged" ></TextBox>
                             <PasswordBox x:Name="PasswordBox" Grid.Column="2" Margin="5,0,0,0" PasswordChanged="PasswordBox_PasswordChanged"></PasswordBox>
-                            
+
                         </Grid>
                         <Grid Grid.Row="4">
                             <Grid.ColumnDefinitions>
@@ -88,17 +88,21 @@
       AlternationCount="2" IsReadOnly="True" SelectionChanged="gridBenutzer_SelectionChanged" >
                         </DataGrid>
                     </Grid>
-                    
+
                 </Grid>
             </TabItem>
-            
+
             <TabItem Header="Ausruestung">
                 <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="37*"/>
+                        <ColumnDefinition Width="747*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
+                    <Grid Grid.Row="0" Grid.ColumnSpan="2">
                         <Grid >
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="25"/>
@@ -109,7 +113,7 @@
                                 <RowDefinition Height="10"/>
                                 <RowDefinition Height="25"/>
                                 <RowDefinition Height="10"/>
-                                
+
                             </Grid.RowDefinitions>
                             <Grid Grid.Row="0">
                                 <Grid.ColumnDefinitions>
@@ -118,7 +122,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Content="B1" Grid.Column="0"></Button>
+                                <Button Content="Ausrüstung zeigen" Grid.Column="0" Click="Button_Click"></Button>
                                 <Label Content="ArtDerAusruestung" Grid.Column="1"></Label>
                                 <Label Content="Marke" Grid.Column="2"></Label>
                                 <Label Content="Model" Grid.Column="3"></Label>
@@ -130,10 +134,10 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Content="B2" Grid.Column="0"></Button>
-                                <TextBox Grid.Column="1" Margin="5,0,0,0"></TextBox>
-                                <TextBox Grid.Column="2" Margin="5,0,0,0"></TextBox>
-                                <TextBox Grid.Column="3" Margin="5,0,0,0"></TextBox>
+                                <Button x:Name="A_loeschen" Content="Ausrüstung löschen" Grid.Column="0" IsEnabled="False" Click="A_loeschen_Click"></Button>
+                                <TextBox x:Name="txtArtDerAusreustung" Grid.Column="1" Margin="5,0,0,0"></TextBox>
+                                <TextBox x:Name="txtMarke" Grid.Column="2" Margin="5,0,0,0"></TextBox>
+                                <TextBox x:Name="txtModel" Grid.Column="3" Margin="5,0,0,0"></TextBox>
                             </Grid>
                             <Grid Grid.Row="4">
                                 <Grid.ColumnDefinitions>
@@ -142,7 +146,7 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Content="B3" Grid.Column="0"></Button>
+                                <Button x:Name="A_Hinzufuegen" Content="Ausrüstung hinzufügen" Grid.Column="0" IsEnabled="False" Click="A_Hinzufuegen_Click"></Button>
                                 <Label Content="Zustand" Grid.Column="1"></Label>
                                 <Label Content="Beschreibung" Grid.Column="2"></Label>
                                 <Label Content="Foto" Grid.Column="3"></Label>
@@ -154,17 +158,17 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Content="B4" Grid.Column="0"></Button>
-                                <TextBox Grid.Column="1" Margin="5,0,0,0"></TextBox>
-                                <TextBox Grid.Column="2" Margin="5,0,0,0"></TextBox>
+                                <Button x:Name="A_Speichern" Content="Änderungen speichern" Grid.Column="0" IsEnabled="False" Click="A_Speichern_Click"></Button>
+                                <TextBox x:Name="txtZustand" Grid.Column="1" Margin="5,0,0,0"></TextBox>
+                                <TextBox x:Name="txtBeschreibung" Grid.Column="2" Margin="5,0,0,0"></TextBox>
                                 <Image Grid.Column="3" Margin="5,0,0,0"></Image>
                             </Grid>
                         </Grid>
                     </Grid>
-                     
-                    
-                    <DataGrid Grid.Row="1" x:Name="AusruestungDataGrid" AutoGenerateColumns="False"  AlternatingRowBackground="LightGray"
-      AlternationCount="2" IsReadOnly="True"   />
+
+
+                    <DataGrid x:Name="AusruestungDataGrid" AutoGenerateColumns="False"  AlternatingRowBackground="LightGray"
+      AlternationCount="2" IsReadOnly="True" SelectionChanged="AusruestungDataGrid_SelectionChanged" Grid.ColumnSpan="2" Margin="0,211,0,0" Grid.RowSpan="2"   />
                 </Grid>
             </TabItem>
             <TabItem Header="Buchung">
