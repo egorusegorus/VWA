@@ -176,17 +176,16 @@
                 </Grid.RowDefinitions>
                     <Grid Grid.Row="0">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="25"></RowDefinition>
+                            <RowDefinition Height="30"></RowDefinition>
                             <RowDefinition Height="10"></RowDefinition>
-                            <RowDefinition Height="25"></RowDefinition>
+                            <RowDefinition Height="30"></RowDefinition>
                             <RowDefinition Height="10"></RowDefinition>
-                            <RowDefinition Height="25"></RowDefinition>
+                            <RowDefinition Height="30"></RowDefinition>
                             <RowDefinition Height="10"></RowDefinition>
-                            <RowDefinition Height="25"></RowDefinition>
-                            <RowDefinition Height="10"></RowDefinition>
-                            <RowDefinition Height="25"></RowDefinition>
-                            <RowDefinition Height="10"></RowDefinition>
-                            <RowDefinition Height="25"></RowDefinition>
+                            
+                            
+                          
+                            
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0">
                             <Grid.ColumnDefinitions>
@@ -195,10 +194,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Content="B1" Grid.Column="0"></Button>
-                            <Label Content="L1" Grid.Column="1"></Label>
-                            <Label Content="L2" Grid.Column="2"></Label>
-                            <Label Content="L3" Grid.Column="3"></Label>
+                            <Button x:Name="btnBuchungZeigen" Content="Buchungen zeigen" Grid.Column="0" Click="Button_Click_1"></Button>
+                            <Label Content="Buchungsbeginn" Grid.Column="1"></Label>
+                            <Label Content="Buchungsende"  Grid.Column="2"></Label>
+                            
                         </Grid>
                         <Grid Grid.Row="2">
                             <Grid.ColumnDefinitions>
@@ -207,10 +206,10 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Content="B1" Grid.Column="0"></Button>
-                            <Label Content="L1" Grid.Column="1"></Label>
-                            <Label Content="L2" Grid.Column="2"></Label>
-                            <Label Content="L3" Grid.Column="3"></Label>
+                            <Button x:Name="btnBuchungAendern" Content="Buchung ändern" Grid.Column="0" IsEnabled="False" Click="btnBuchungAendern_Click"></Button>
+                            <DatePicker x:Name="DatePickerBuchungsBegin" Grid.Column="1" Margin="5,0,0,0"></DatePicker>
+                            <DatePicker x:Name="DatePickerBuchungsEnde" Grid.Column="2" Margin="5,0,0,0"></DatePicker>
+                            
                         </Grid>
                         <Grid Grid.Row="4">
                             <Grid.ColumnDefinitions>
@@ -219,10 +218,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Button Content="B1" Grid.Column="0"></Button>
-                            <Label Content="L1" Grid.Column="1"></Label>
-                            <Label Content="L2" Grid.Column="2"></Label>
-                            <Label Content="L3" Grid.Column="3"></Label>
+                            <Button x:Name="btnBuchungLoeschen" Content="Buchung löschnen" Grid.Column="0" IsEnabled="False" Click="btnBuchungLoeschen_Click"></Button>
+                            
                         </Grid>
                         <Grid Grid.Row="6">
                                 <Grid.ColumnDefinitions>
@@ -231,16 +228,13 @@
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-                            <Button Content="B1" Grid.Column="0"></Button>
-                            <Label Content="L1" Grid.Column="1"></Label>
-                            <Label Content="L2" Grid.Column="2"></Label>
-                            <Label Content="L3" Grid.Column="3"></Label>
+                            
                         </Grid>
 
                        
                     </Grid>
                     <DataGrid x:Name="B_DataGrid" AutoGenerateColumns="False"  AlternatingRowBackground="LightGray"
-                                AlternationCount="2" IsReadOnly="True" SelectionChanged="AusruestungDataGrid_SelectionChanged" Grid.ColumnSpan="2" Margin="0,211,0,0" Grid.RowSpan="2"   />
+                                AlternationCount="2" IsReadOnly="True" Grid.ColumnSpan="2" Margin="0,211,0,0" Grid.RowSpan="2" SelectionChanged="B_DataGrid_SelectionChanged"   />
 
                 </Grid>
                 

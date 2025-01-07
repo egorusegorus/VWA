@@ -27,32 +27,119 @@ namespace VWA
     /// </summary>
     public partial class Aam : UserControl
     {
-		private SecureString secureString;
-		public Aam(MainWindow mainWindow)
+        private SecureString secureString;
+        public Aam(MainWindow mainWindow)
         {
             InitializeComponent();
-            secureString= mainWindow.secureString;
-			LoadDate();
-			LoadAusruestung();
+            secureString = mainWindow.secureString;
+            LoadDate();
+            LoadAusruestung();
+            LoadBuchungen();
 
 
 
         }
+        public void LoadBuchungen()
+        {
+            try
+            {
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
 
-		public void LoadDate()
-		{
-			try
-			{
-				FileEncription fileEncription = new FileEncription();
-				string connectionString = fileEncription.ConvertToPlainString(secureString);
-				
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
-					
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connectionString = null;
+                    connection.Open();
 
-					// Zapytanie SQL, które pobiera wszystkie dane z tabeli benutzer
-					string query = @"
+                   
+                    var columnNames = new List<string>
+            {
+                "ArtDerAusruestung",
+                "Marke",
+                "Model",
+                "Beschreibung",
+                "Zustand",
+                "BuchungID",
+                "Email",
+                "Buchungsbeginn",
+                "Buchungsende",
+                "Erstellungsdatum_der_Buchung",
+                "Geaendert_am",
+                "Geaendert_von"
+            };
+
+                    
+                    string query = @"
+                SELECT 
+                    a.ArtDerAusruestung,
+                    a.Marke,
+                    a.Model,
+                    a.Beschreibung,
+                    a.Zustand,
+                    b.ID AS BuchungID,
+                    u.Email, -- Pobieramy adres email z tabeli benutzer
+                    b.Buchungsbeginn,
+                    b.Buchungsende,
+                    b.Erstellungsdatum_der_Buchung,
+                    b.Geaendert_am,
+                    b.Geaendert_von
+                FROM 
+                    buchung b
+                JOIN 
+                    ausruestung a
+                ON 
+                    b.AusruestungID = a.ID
+                JOIN 
+                    benutzer u
+                ON 
+                    b.BenutzerID = u.ID;"; 
+
+              
+                    var dataTable = new DataTable();
+                    using (var adapter = new MySqlDataAdapter(query, connection))
+                    {
+                        adapter.Fill(dataTable);
+                    }
+
+                    
+                    B_DataGrid.AutoGenerateColumns = false;
+
+                   
+                    B_DataGrid.Columns.Clear();
+
+                    
+                    foreach (var columnName in columnNames)
+                    {
+                        B_DataGrid.Columns.Add(new DataGridTextColumn
+                        {
+                            Header = columnName,
+                            Binding = new System.Windows.Data.Binding(columnName)
+                        });
+                    }
+
+                    
+                    B_DataGrid.ItemsSource = dataTable.DefaultView;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        public void LoadDate()
+        {
+            try
+            {
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
+
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+
+
+                 
+                    string query = @"
                 SELECT 
                     ID,
                     Nachname,
@@ -64,152 +151,34 @@ namespace VWA
                 FROM 
                     benutzer";
 
-					// Utwórz DataTable i załaduj dane
-					var dataTable = new DataTable();
-					using (var adapter = new MySqlDataAdapter(query, connection))
-					{
-						adapter.Fill(dataTable);
-					}
+                    
+                    var dataTable = new DataTable();
+                    using (var adapter = new MySqlDataAdapter(query, connection))
+                    {
+                        adapter.Fill(dataTable);
+                    }
 
-					// Wyłącz automatyczne generowanie kolumn
-					gridBenutzer.AutoGenerateColumns = true;
+                   
+                    gridBenutzer.AutoGenerateColumns = true;
 
-					// Przypisz dane do DataGrid
-					gridBenutzer.ItemsSource = dataTable.DefaultView;
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-		}
-		private List<Benutzer> selectedBenutzers = new List<Benutzer>();
+          
+                    gridBenutzer.ItemsSource = dataTable.DefaultView;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private List<Benutzer> selectedBenutzers = new List<Benutzer>();
         private List<Ausruestung> selectedAusruestung = new List<Ausruestung>();
-
+        private List<Buchung> selectedBuchung = new List<Buchung>();
 
         private void SafeInDB(SecureString secureString, List<Benutzer> selectedBenutzers)
-		{
-			try
-			{
-				// Upewniamy się, że connection string jest poprawny
-				FileEncription fileEncription = new FileEncription();
-				string connectionString = fileEncription.ConvertToPlainString(secureString);
-				string temp = connectionString;
-				string pattern = @"Uid=(.*?);";
-				Match match = Regex.Match(temp, pattern);
-
-				if (match.Success)
-				{
-					string value = match.Groups[1].Value;
-					value = value.Trim();
-					temp = value;
-				}
-				if (string.IsNullOrWhiteSpace(connectionString))
-				{
-					MessageBox.Show("Connection string jest pusty!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
-				}
-
-				// Sprawdzamy, czy lista selectedBenutzers nie jest pusta
-				if (selectedBenutzers == null || !selectedBenutzers.Any())
-				{
-					MessageBox.Show("Lista Benutzer jest pusta!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
-				}
-
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
-					Console.WriteLine("Połączono z bazą danych.");
-
-					foreach (var benutzer in selectedBenutzers)
-					{
-						// Walidacja danych
-						if (benutzer.ID == 0)
-						{
-							Console.WriteLine($"Benutzer o ID 0 został pominięty (nie można zaktualizować rekordu bez ID).");
-							continue;
-						}
-
-						// Przypisanie danych z GUI do obiektów w liście, ale nie zmieniając ID
-						benutzer.Nachname = txtBoxNachname.Text;
-						benutzer.Vorname = txtBoxVorname.Text;
-						benutzer.Email = txtBoxEmail.Text;
-						benutzer.Benutzername = txtBoxBenutzername.Text;
-
-						// Ustawienie wartości Geaendert_Von i Geaendert_Am
-						benutzer.Geaendert_Von = temp; // Domyślny użytkownik
-						benutzer.Geaendert_Am = DateTime.Now;
-
-						// Zapytanie SQL do aktualizacji
-						string query = @"
-                UPDATE benutzer
-                SET 
-                    Nachname = @Nachname,
-                    Vorname = @Vorname,
-                    Email = @Email,
-                    Benutzername = @Benutzername,
-                    Geaendert_Von = @Geaendert_Von,
-                    Geaendert_Am = @Geaendert_Am
-                WHERE 
-                    ID = @Id;";
-
-						try
-						{
-							using (var cmd = new MySqlCommand(query, connection))
-							{
-								cmd.Parameters.AddWithValue("@Id", benutzer.ID);
-								cmd.Parameters.AddWithValue("@Nachname", benutzer.Nachname);
-								cmd.Parameters.AddWithValue("@Vorname", benutzer.Vorname);
-								cmd.Parameters.AddWithValue("@Email", benutzer.Email);
-								cmd.Parameters.AddWithValue("@Benutzername", benutzer.Benutzername);
-								cmd.Parameters.AddWithValue("@Geaendert_Von", benutzer.Geaendert_Von);
-								cmd.Parameters.AddWithValue("@Geaendert_Am", benutzer.Geaendert_Am);
-
-								// Wykonanie zapytania SQL
-								int rowsAffected = cmd.ExecuteNonQuery();
-
-								if (rowsAffected > 0)
-								{
-									Console.WriteLine($"Benutzer o ID {benutzer.ID} został pomyślnie zapisany.");
-								}
-								else
-								{
-									Console.WriteLine($"Nie znaleziono rekordu o ID {benutzer.ID}.");
-								}
-							}
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine($"Błąd podczas zapisywania Benutzer o ID {benutzer.ID}: {ex.Message}");
-						}
-					}
-				}
-
-				// Komunikat o sukcesie
-				//MessageBox.Show("Wszystkie zmiany zostały zapisane!", "Gut gemacht", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-			catch (Exception ex)
-			{
-				// Obsługa błędów
-				MessageBox.Show($"Wystąpił błąd podczas zapisywania danych: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-			txtBoxBenutzername.Text = null;
-			txtBoxEmail.Text = null;
-			txtBoxNachname.Text = null;
-			txtBoxVorname.Text = null;
-			PasswordBox.Password = null;
-			btnBenutzerHinZuFuegen.IsEnabled = false;
-			btnBenutzerLöschen.IsEnabled = false;
-			btnBenutzerBearbeiten.IsEnabled = false;
-			LoadDate();
-		
-		}
-        private void SafeInDB_A(SecureString secureString, List<Ausruestung> selectedAusruestung)
         {
             try
             {
-                // Upewniamy się, że connection string jest poprawny
+               
                 FileEncription fileEncription = new FileEncription();
                 string connectionString = fileEncription.ConvertToPlainString(secureString);
                 string temp = connectionString;
@@ -228,10 +197,125 @@ namespace VWA
                     return;
                 }
 
-                // Sprawdzamy, czy lista selectedAusruestung nie jest pusta
+            
+                if (selectedBenutzers == null || !selectedBenutzers.Any())
+                {
+                    MessageBox.Show("Lista Benutzer jest pusta!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    Console.WriteLine("Połączono z bazą danych.");
+
+                    foreach (var benutzer in selectedBenutzers)
+                    {
+                
+                        if (benutzer.ID == 0)
+                        {
+                            Console.WriteLine($"Benutzer o ID 0 został pominięty (nie można zaktualizować rekordu bez ID).");
+                            continue;
+                        }
+
+                        benutzer.Nachname = txtBoxNachname.Text;
+                        benutzer.Vorname = txtBoxVorname.Text;
+                        benutzer.Email = txtBoxEmail.Text;
+                        benutzer.Benutzername = txtBoxBenutzername.Text;
+
+                        
+                        benutzer.Geaendert_Von = temp; 
+                        benutzer.Geaendert_Am = DateTime.Now;
+
+                      
+                        string query = @"
+                UPDATE benutzer
+                SET 
+                    Nachname = @Nachname,
+                    Vorname = @Vorname,
+                    Email = @Email,
+                    Benutzername = @Benutzername,
+                    Geaendert_Von = @Geaendert_Von,
+                    Geaendert_Am = @Geaendert_Am
+                WHERE 
+                    ID = @Id;";
+
+                        try
+                        {
+                            using (var cmd = new MySqlCommand(query, connection))
+                            {
+                                cmd.Parameters.AddWithValue("@Id", benutzer.ID);
+                                cmd.Parameters.AddWithValue("@Nachname", benutzer.Nachname);
+                                cmd.Parameters.AddWithValue("@Vorname", benutzer.Vorname);
+                                cmd.Parameters.AddWithValue("@Email", benutzer.Email);
+                                cmd.Parameters.AddWithValue("@Benutzername", benutzer.Benutzername);
+                                cmd.Parameters.AddWithValue("@Geaendert_Von", benutzer.Geaendert_Von);
+                                cmd.Parameters.AddWithValue("@Geaendert_Am", benutzer.Geaendert_Am);
+
+                               
+                                int rowsAffected = cmd.ExecuteNonQuery();
+
+                                if (rowsAffected > 0)
+                                {
+                                    Console.WriteLine($"Benutzer o ID {benutzer.ID} został pomyślnie zapisany.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Nie znaleziono rekordu o ID {benutzer.ID}.");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Błąd podczas zapisywania Benutzer o ID {benutzer.ID}: {ex.Message}");
+                        }
+                    }
+                }
+
+           }
+            catch (Exception ex)
+            {
+               
+                MessageBox.Show($"Fehler: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            txtBoxBenutzername.Text = null;
+            txtBoxEmail.Text = null;
+            txtBoxNachname.Text = null;
+            txtBoxVorname.Text = null;
+            PasswordBox.Password = null;
+            btnBenutzerHinZuFuegen.IsEnabled = false;
+            btnBenutzerLöschen.IsEnabled = false;
+            btnBenutzerBearbeiten.IsEnabled = false;
+            LoadDate();
+
+        }
+        private void SafeInDB_A(SecureString secureString, List<Ausruestung> selectedAusruestung)
+        {
+            try
+            {
+      
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
+                string temp = connectionString;
+                string pattern = @"Uid=(.*?);";
+                Match match = Regex.Match(temp, pattern);
+
+                if (match.Success)
+                {
+                    string value = match.Groups[1].Value;
+                    value = value.Trim();
+                    temp = value;
+                }
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    MessageBox.Show("Connection string jest pusty!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+             
                 if (selectedAusruestung == null || !selectedAusruestung.Any())
                 {
-                    MessageBox.Show("Lista Ausruestung jest pusta!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Fehler!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
@@ -249,7 +333,7 @@ namespace VWA
                             continue;
                         }
 
-                        // Przypisanie danych z GUI do obiektów w liście, ale nie zmieniając ID
+                  
                         ausruestung.ArtDerAusruestung = txtArtDerAusreustung.Text;
                         ausruestung.Marke = txtMarke.Text;
                         ausruestung.Model = txtModel.Text;
@@ -258,7 +342,7 @@ namespace VWA
                         ausruestung.Geaendert_Von = temp;
                         ausruestung.Geaendert_Am = DateTime.Now;
 
-                        // Zapytanie SQL do aktualizacji
+                       
                         string query = @"
                 UPDATE ausruestung
                 SET 
@@ -285,33 +369,26 @@ namespace VWA
                                 cmd.Parameters.AddWithValue("@Geaendert_Von", ausruestung.Geaendert_Von);
                                 cmd.Parameters.AddWithValue("@Geaendert_Am", ausruestung.Geaendert_Am);
 
-                                // Wykonanie zapytania SQL
+                            
                                 int rowsAffected = cmd.ExecuteNonQuery();
 
-                                if (rowsAffected > 0)
-                                {
-                                    Console.WriteLine($"Ausruestung o ID {ausruestung.ID} został pomyślnie zapisany.");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Nie znaleziono rekordu o ID {ausruestung.ID}.");
-                                }
+                               
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Błąd podczas zapisywania Ausruestung o ID {ausruestung.ID}: {ex.Message}");
+                            Console.WriteLine($"Error: {ex.Message}");
                         }
                     }
                 }
 
                 // Komunikat o sukcesie
-                MessageBox.Show("Wszystkie zmiany zostały zapisane!", "Gut gemacht", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Well done", "Gut gemacht", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                // Obsługa błędów
-                MessageBox.Show($"Wystąpił błąd podczas zapisywania danych: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                MessageBox.Show($"Error: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             txtZustand.Text = null;
@@ -324,289 +401,160 @@ namespace VWA
             A_Speichern.IsEnabled = false;
             LoadAusruestung();
         }
-        /*private void SafeInDB_A(SecureString secureString, List<Ausruestung> selectedAusruestung)
+       
+        private void SafeInFelder()
+        {
+         
+            if (gridBenutzer.SelectedItem != null)
+            {
+               
+                if (gridBenutzer.SelectedItem is DataRowView rowView)
+                {
+                  
+                    var selectedBenutzer = new Benutzer
+                    {
+                        ID = rowView["ID"] != DBNull.Value ? Convert.ToInt32(rowView["ID"]) : 0,
+                        Nachname = rowView["Nachname"] != DBNull.Value ? rowView["Nachname"].ToString() : string.Empty,
+                        Vorname = rowView["Vorname"] != DBNull.Value ? rowView["Vorname"].ToString() : string.Empty,
+                        Email = rowView["Email"] != DBNull.Value ? rowView["Email"].ToString() : string.Empty,
+                        Benutzername = rowView["Benutzername"] != DBNull.Value ? rowView["Benutzername"].ToString() : string.Empty,
+                        Geaendert_Von = rowView["Geaendert_Von"] != DBNull.Value ? rowView["Geaendert_Von"].ToString() : string.Empty,
+                        Geaendert_Am = rowView["Geaendert_Am"] != DBNull.Value ? Convert.ToDateTime(rowView["Geaendert_Am"]) : DateTime.MinValue
+                    };
+
+                    
+                    selectedBenutzers.Clear(); 
+                    selectedBenutzers.Add(selectedBenutzer);
+
+                    
+                    txtBoxNachname.Text = selectedBenutzer.Nachname;
+                    txtBoxVorname.Text = selectedBenutzer.Vorname;
+                    txtBoxEmail.Text = selectedBenutzer.Email;
+                    txtBoxBenutzername.Text = selectedBenutzer.Benutzername;
+                }
+            }
+            else
+            {
+               
+                selectedBenutzers.Clear();
+            }
+        }
+
+        private void gridBenutzer_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (gridBenutzer.SelectedItem != null)
+            {
+
+                btnBenutzerLöschen.IsEnabled = true;
+                btnBenutzerBearbeiten.IsEnabled = true;
+                btnBenutzerHinZuFuegen.IsEnabled = false;
+            }
+            SafeInFelder();
+
+
+
+
+        }
+
+        private void btnBenutzerZeigen_Click(object sender, RoutedEventArgs e)
+        {
+            LoadDate();
+            btnBenutzerLöschen.IsEnabled = false;
+            btnBenutzerBearbeiten.IsEnabled = false;
+            btnBenutzerHinZuFuegen.IsEnabled = false;
+            txtBoxEmail.Text = null;
+            txtBoxBenutzername.Text = null;
+            txtBoxNachname.Text = null;
+            txtBoxVorname.Text = null;
+            PasswordBox.Password = "";
+
+        }
+
+        private void btnBenutzerLöschen_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Upewniamy się, że connection string jest poprawny
                 FileEncription fileEncription = new FileEncription();
                 string connectionString = fileEncription.ConvertToPlainString(secureString);
-                string temp = connectionString;
-                string pattern = @"Uid=(.*?);";
-                Match match = Regex.Match(temp, pattern);
 
-                if (match.Success)
-                {
-                    string value = match.Groups[1].Value;
-                    value = value.Trim();
-                    temp = value;
-                }
-                if (string.IsNullOrWhiteSpace(connectionString))
-                {
-                    MessageBox.Show("Connection string jest pusty!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
 
-                // Sprawdzamy, czy lista selectedBenutzers nie jest pusta
-                if (selectedAusruestung == null || !selectedAusruestung.Any())
+                int id = 0;
+                if (gridBenutzer.SelectedItem is DataRowView rowView)
                 {
-                    MessageBox.Show("Lista Benutzer jest pusta!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    id = Convert.ToInt32(rowView["ID"]);
+
+                }
+                else
+                {
+                    MessageBox.Show("Bitte Datensatz wählen!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    Console.WriteLine("Połączono z bazą danych.");
 
-                    foreach (var ausruestung in selectedAusruestung)
+                    using (var cmd = connection.CreateCommand())
                     {
-                        // Walidacja danych
-                        if (ausruestung.ID == 0)
-                        {
-                            Console.WriteLine($"Benutzer o ID 0 został pominięty (nie można zaktualizować rekordu bez ID).");
-                            continue;
-                        }
-
-
-
-                        // Przypisanie danych z GUI do obiektów w liście, ale nie zmieniając ID
-
-                        //int id = selectedAusruestung[0].ID; // Wydobycie ID pierwszego elementu
-
-
-                        ausruestung.ID = selectedAusruestung[0].ID;
-                        ausruestung.ArtDerAusruestung  = txtArtDerAusreustung.Text;
-                        ausruestung.Marke = txtMarke.Text;
-                        ausruestung.Model = txtModel.Text;
-                        ausruestung.Zustand = txtZustand.Text;
-                        ausruestung.Beschreibung = txtBeschreibung.Text;
-                        ausruestung.Geaendert_Von = temp;
-                        // Ustawienie wartości Geaendert_Von i Geaendert_Am
-                                                ausruestung.Geaendert_Am = DateTime.Now;
-
-                        // Zapytanie SQL do aktualizacji
-                        string query = @"
-                UPDATE ausruestung
-                SET 
-                    ArtDerAusruestung = @artDerAusruestung,
-                    Marke = @marke,
-                    Model = @model,
-                    Zustand = @zustand,
-                    Beschreibung=@beschreibung,
-                    Geaendert_Von = @Geaendert_Von,
-                    Geaendert_Am = @Geaendert_Am
-                WHERE 
-                    ID = @Id;";
-
-                        try
-                        {
-                            using (var cmd = new MySqlCommand(query, connection))
-                            {
-                                cmd.Parameters.AddWithValue("@Id", ausruestung.ID);
-                                cmd.Parameters.AddWithValue("@artDerAusruestung", ausruestung.ArtDerAusruestung);
-                                cmd.Parameters.AddWithValue("@model", ausruestung.Model);
-                                cmd.Parameters.AddWithValue("@marke", ausruestung.Marke);
-                                cmd.Parameters.AddWithValue("@beschreibung", ausruestung.Beschreibung);
-                                cmd.Parameters.AddWithValue("@Geaendert_Von", ausruestung.Geaendert_Von);
-                                cmd.Parameters.AddWithValue("@Geaendert_Am", ausruestung.Geaendert_Am);
-
-                                // Wykonanie zapytania SQL
-                                int rowsAffected = cmd.ExecuteNonQuery();
-
-                                if (rowsAffected > 0)
-                                {
-                                    MessageBox.Show($"Ausruestung o ID {ausruestung.ID} został pomyślnie zapisany.");
-                                    Console.WriteLine($"Ausruestung o ID {ausruestung.ID} został pomyślnie zapisany.");
-                                }
-                                else
-                                {
-                                    MessageBox.Show($"Nie znaleziono rekordu o ID {ausruestung.ID}.");
-                                    Console.WriteLine($"Nie znaleziono rekordu o ID {ausruestung.ID}.");
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Błąd podczas zapisywania Benutzer o ID {ausruestung.ID}: {ex.Message}");
-                        }
+                     
+                        cmd.CommandText = "DELETE FROM bENUTZER WHERE ID = @id";
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
                     }
-                }
+                    btnBenutzerLöschen.IsEnabled = false;
 
-                // Komunikat o sukcesie
-                //MessageBox.Show("Wszystkie zmiany zostały zapisane!", "Gut gemacht", MessageBoxButton.OK, MessageBoxImage.Information);
+                    btnBenutzerBearbeiten.IsEnabled = false;
+                    LoadDate();
+                }
             }
-            catch (Exception ex)
-            {
-                // Obsługa błędów
-                MessageBox.Show($"Wystąpił błąd podczas zapisywania danych: {ex.Message}\n{ex.StackTrace}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            txtZustand.Text = null;
-            txtBeschreibung.Text = null;
-            txtArtDerAusreustung.Text = null;
-            txtMarke.Text = null;
-            txtModel.Text = null;
-            
-            A_Hinzufuegen.IsEnabled = false;
-            A_loeschen.IsEnabled = false;
-            A_Speichern.IsEnabled = false;
-            LoadAusruestung();
+            catch (Exception ex) { }
+        }
+
+        private void btnBenutzerBearbeiten_Click(object sender, RoutedEventArgs e)
+        {
+            SafeInDB(secureString, selectedBenutzers);
 
         }
-*/
-        private void SafeInFelder()
-		{
-			// Sprawdź, czy wiersz jest zaznaczony
-			if (gridBenutzer.SelectedItem != null)
-			{
-				// Jeśli element w DataGrid jest typu DataRowView
-				if (gridBenutzer.SelectedItem is DataRowView rowView)
-				{
-					// Pobierz dane z wiersza, aby przypisać je do obiektu typu Benutzer
-					var selectedBenutzer = new Benutzer
-					{
-						ID = rowView["ID"] != DBNull.Value ? Convert.ToInt32(rowView["ID"]) : 0,
-						Nachname = rowView["Nachname"] != DBNull.Value ? rowView["Nachname"].ToString() : string.Empty,
-						Vorname = rowView["Vorname"] != DBNull.Value ? rowView["Vorname"].ToString() : string.Empty,
-						Email = rowView["Email"] != DBNull.Value ? rowView["Email"].ToString() : string.Empty,
-						Benutzername = rowView["Benutzername"] != DBNull.Value ? rowView["Benutzername"].ToString() : string.Empty,
-						Geaendert_Von = rowView["Geaendert_Von"] != DBNull.Value ? rowView["Geaendert_Von"].ToString() : string.Empty,
-						Geaendert_Am = rowView["Geaendert_Am"] != DBNull.Value ? Convert.ToDateTime(rowView["Geaendert_Am"]) : DateTime.MinValue
-					};
+        void EnableHinzufuegen()
+        {
+            if (!string.IsNullOrWhiteSpace(txtBoxBenutzername.Text) &&
+                !string.IsNullOrWhiteSpace(txtBoxEmail.Text) &&
+                !string.IsNullOrWhiteSpace(txtBoxNachname.Text) &&
+                !string.IsNullOrWhiteSpace(txtBoxVorname.Text) &&
+                !string.IsNullOrWhiteSpace(PasswordBox.Password))
+            {
+                btnBenutzerHinZuFuegen.IsEnabled = true;
+            }
+            else
+            {
+                btnBenutzerHinZuFuegen.IsEnabled = false;
+            }
+        }
 
-					// Dodaj zaznaczonego użytkownika do listy
-					selectedBenutzers.Clear(); // Czyszczenie poprzednich zaznaczeń
-					selectedBenutzers.Add(selectedBenutzer);
+        private void txtBoxNachname_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            EnableHinzufuegen();
+        }
 
-					// Przypisanie danych do kontrolek TextBox
-					txtBoxNachname.Text = selectedBenutzer.Nachname;
-					txtBoxVorname.Text = selectedBenutzer.Vorname;
-					txtBoxEmail.Text = selectedBenutzer.Email;
-					txtBoxBenutzername.Text = selectedBenutzer.Benutzername;  // Przypisanie użytkownika do TextBox
-				}
-			}
-			else
-			{
-				// Jeśli nie ma zaznaczonego wiersza, wyczyść listę
-				selectedBenutzers.Clear();
-			}
-		}
+        private void txtBoxVorname_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            EnableHinzufuegen();
+        }
 
-		private void gridBenutzer_SelectionChanged(object sender, SelectionChangedEventArgs e)
-		{
-			if (gridBenutzer.SelectedItem != null)
-			{
+        private void txtBoxBenutzername_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            EnableHinzufuegen();
+        }
 
-				btnBenutzerLöschen.IsEnabled = true;
-				btnBenutzerBearbeiten.IsEnabled = true;
-				btnBenutzerHinZuFuegen.IsEnabled = false;
-			}
-			SafeInFelder();
-				
-				
+        private void txtBoxEmail_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            EnableHinzufuegen();
+        }
 
-				
-		}
-
-		private void btnBenutzerZeigen_Click(object sender, RoutedEventArgs e)
-		{
-			LoadDate();
-			btnBenutzerLöschen.IsEnabled = false;
-			btnBenutzerBearbeiten.IsEnabled = false;
-			btnBenutzerHinZuFuegen.IsEnabled = false;
-			txtBoxEmail.Text=null;
-			txtBoxBenutzername.Text=null;
-			txtBoxNachname.Text = null;
-			txtBoxVorname.Text = null;
-			PasswordBox.Password = "";
-
-		}
-
-		private void btnBenutzerLöschen_Click(object sender, RoutedEventArgs e)
-		{
-			try
-			{
-				FileEncription fileEncription = new FileEncription();
-				string connectionString = fileEncription.ConvertToPlainString(secureString);
-
-
-				int id = 0;
-				if (gridBenutzer.SelectedItem is DataRowView rowView)
-				{
-					id = Convert.ToInt32(rowView["ID"]);
-
-				}
-				else
-				{
-					MessageBox.Show("Bitte Datensatz wählen!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-					return;
-				}
-
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
-
-					using (var cmd = connection.CreateCommand())
-					{
-						// Poprawne zapytanie SQL
-						cmd.CommandText = "DELETE FROM bENUTZER WHERE ID = @id";
-						cmd.Parameters.AddWithValue("@id", id);
-						cmd.ExecuteNonQuery();
-					}
-					btnBenutzerLöschen.IsEnabled = false;
-
-					btnBenutzerBearbeiten.IsEnabled = false;
-					LoadDate();
-				}
-			}
-			catch (Exception ex) { }
-			}
-
-		private void btnBenutzerBearbeiten_Click(object sender, RoutedEventArgs e)
-		{
-			SafeInDB(secureString,selectedBenutzers);
-
-		}
-		void EnableHinzufuegen()
-		{// Sprawdzamy, czy wszystkie pola tekstowe są wypełnione oraz czy PasswordBox nie jest pusty
-			if (!string.IsNullOrWhiteSpace(txtBoxBenutzername.Text) &&
-				!string.IsNullOrWhiteSpace(txtBoxEmail.Text) &&
-				!string.IsNullOrWhiteSpace(txtBoxNachname.Text) &&
-				!string.IsNullOrWhiteSpace(txtBoxVorname.Text) &&
-				!string.IsNullOrWhiteSpace(PasswordBox.Password))
-			{
-				btnBenutzerHinZuFuegen.IsEnabled = true;
-			}
-			else
-			{
-				btnBenutzerHinZuFuegen.IsEnabled = false;
-			}
-		}
-
-		private void txtBoxNachname_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			EnableHinzufuegen();
-		}
-
-		private void txtBoxVorname_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			EnableHinzufuegen();
-		}
-
-		private void txtBoxBenutzername_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			EnableHinzufuegen();
-		}
-
-		private void txtBoxEmail_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			EnableHinzufuegen();
-		}
-
-		private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
-		{
-			EnableHinzufuegen();
-		}
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            EnableHinzufuegen();
+        }
 
         private void btnBenutzerHinZuFuegen_Click(object sender, RoutedEventArgs e)
         {
@@ -731,17 +679,18 @@ namespace VWA
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-			LoadAusruestung();
-			txtArtDerAusreustung.Clear();
-			txtBeschreibung.Clear();
-			txtMarke.Clear();
-			txtModel.Clear();
-			txtZustand.Clear();
-			A_loeschen.IsEnabled = false;	
-			A_Speichern.IsEnabled = false;
-          
+            LoadAusruestung();
+            txtArtDerAusreustung.Clear();
+            txtBeschreibung.Clear();
+            txtMarke.Clear();
+            txtModel.Clear();
+            txtZustand.Clear();
+            A_loeschen.IsEnabled = false;
+            A_Speichern.IsEnabled = false;
+
         }
-		private void LoadAusruestung() {
+        private void LoadAusruestung()
+        {
             try
             {
                 FileEncription fileEncription = new FileEncription();
@@ -752,7 +701,7 @@ namespace VWA
                     connection.Open();
 
 
-                    // Zapytanie SQL, które pobiera wszystkie dane z tabeli benutzer
+                    
                     string query = @"
                 SELECT 
                     ID,
@@ -767,17 +716,17 @@ namespace VWA
                 FROM 
                     ausruestung";
 
-                    // Utwórz DataTable i załaduj dane
+                   
                     var dataTable = new DataTable();
                     using (var adapter = new MySqlDataAdapter(query, connection))
                     {
                         adapter.Fill(dataTable);
                     }
 
-                    // Wyłącz automatyczne generowanie kolumn
+                 
                     AusruestungDataGrid.AutoGenerateColumns = true;
 
-                    // Przypisz dane do DataGrid
+                   
                     AusruestungDataGrid.ItemsSource = dataTable.DefaultView;
                 }
             }
@@ -785,32 +734,32 @@ namespace VWA
             {
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-			
-            
+
+
         }
 
         private void AusruestungDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-			if (AusruestungDataGrid.SelectedItem != null)
-			{
-				A_loeschen.IsEnabled = true;
-				A_Speichern.IsEnabled = true;
-				A_Hinzufuegen.IsEnabled = false;
-              
-            }
-			A_SafeINFelder();
-            
-
-        }
-		private void A_SafeINFelder()
-		{
-            // Sprawdź, czy wiersz jest zaznaczony
             if (AusruestungDataGrid.SelectedItem != null)
             {
-                // Jeśli element w DataGrid jest typu DataRowView
+                A_loeschen.IsEnabled = true;
+                A_Speichern.IsEnabled = true;
+                A_Hinzufuegen.IsEnabled = false;
+
+            }
+            A_SafeINFelder();
+
+
+        }
+        private void A_SafeINFelder()
+        {
+          
+            if (AusruestungDataGrid.SelectedItem != null)
+            {
+               
                 if (AusruestungDataGrid.SelectedItem is DataRowView rowView)
                 {
-                    // Pobierz dane z wiersza, aby przypisać je do obiektu typu Benutzer
+                
                     var selectedAusruestun = new Ausruestung
                     {
                         ID = rowView["ID"] != DBNull.Value ? Convert.ToInt32(rowView["ID"]) : 0,
@@ -823,22 +772,22 @@ namespace VWA
                         Geaendert_Am = rowView["Geaendert_Am"] != DBNull.Value ? Convert.ToDateTime(rowView["Geaendert_Am"]) : DateTime.MinValue
                     };
 
-                    // Dodaj zaznaczonego użytkownika do listy
-                    selectedAusruestung.Clear(); // Czyszczenie poprzednich zaznaczeń
+                  
+                    selectedAusruestung.Clear(); 
                     selectedAusruestung.Add(selectedAusruestun);
 
-                    // Przypisanie danych do kontrolek TextBox
+                
                     txtArtDerAusreustung.Text = selectedAusruestun.ArtDerAusruestung;
-					txtMarke.Text = selectedAusruestun.Marke ;
-					txtModel.Text = selectedAusruestun.Model;
-					txtZustand.Text = selectedAusruestun.Zustand	;
+                    txtMarke.Text = selectedAusruestun.Marke;
+                    txtModel.Text = selectedAusruestun.Model;
+                    txtZustand.Text = selectedAusruestun.Zustand;
                     txtBeschreibung.Text = selectedAusruestun.Beschreibung;
-                      // Przypisanie użytkownika do TextBox
+                  
                 }
             }
             else
             {
-                // Jeśli nie ma zaznaczonego wiersza, wyczyść listę
+               
                 selectedBenutzers.Clear();
 
             }
@@ -878,7 +827,7 @@ namespace VWA
                     A_loeschen.IsEnabled = false;
 
                     A_Speichern.IsEnabled = false;
-					LoadAusruestung();
+                    LoadAusruestung();
                 }
             }
             catch (Exception ex) { }
@@ -891,7 +840,7 @@ namespace VWA
                 FileEncription fileEncription = new FileEncription();
                 string connectionString = fileEncription.ConvertToPlainString(secureString);
 
-                
+
 
                 ausruestung.ArtDerAusruestung = txtArtDerAusreustung.Text.Trim();
                 ausruestung.Marke = txtMarke.Text.Trim();
@@ -916,15 +865,219 @@ namespace VWA
 
             ClearFields();
 
-			LoadAusruestung();
+            LoadAusruestung();
         }
 
         private void A_Speichern_Click(object sender, RoutedEventArgs e)
         {
-            SafeInDB_A(secureString,selectedAusruestung);
+            SafeInDB_A(secureString, selectedAusruestung);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            LoadBuchungen();
+        }
+
+        private void B_DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            btnBuchungAendern.IsEnabled = true;
+            btnBuchungLoeschen.IsEnabled = true;
+
+            if (B_DataGrid.SelectedItem != null)
+            {
+                
+                if (B_DataGrid.SelectedItem is DataRowView rowView)
+                {
+                    
+                    var selectedBuchung1 = new Buchung
+                    {
+                        ID = rowView["BuchungID"] != DBNull.Value ? Convert.ToInt32(rowView["BuchungID"]) : 0,
+                        Buchungsbeginn = rowView["Buchungsbeginn"] != DBNull.Value
+                            ? Convert.ToDateTime(rowView["Buchungsbeginn"]) : DateTime.MinValue,
+                        Buchungsende = rowView["Buchungsende"] != DBNull.Value
+                            ? Convert.ToDateTime(rowView["Buchungsende"]) : DateTime.MinValue
+                    };
+
+                  
+                    selectedBuchung.Clear();
+                    selectedBuchung.Add(selectedBuchung1);
+
+                    
+                    DatePickerBuchungsBegin.SelectedDate = selectedBuchung1.Buchungsbeginn;
+                    DatePickerBuchungsEnde.SelectedDate = selectedBuchung1.Buchungsende;
+                }
+            }
+            else
+            {
+         
+                selectedBuchung.Clear();
+                btnBuchungAendern.IsEnabled = false;
+                btnBuchungLoeschen.IsEnabled = false;
+            }
+        }
+
+        private void btnBuchungAendern_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+            
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
+                string temp = connectionString;
+                string pattern = @"Uid=(.*?);";
+                Match match = Regex.Match(temp, pattern);
+
+                if (match.Success)
+                {
+                    string value = match.Groups[1].Value;
+                    value = value.Trim();
+                    temp = value;
+                }
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    MessageBox.Show("Connection string jest pusty!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+              
+                if (selectedBuchung == null || !selectedBuchung.Any())
+                {
+                    MessageBox.Show("Lista Buchung jest pusta!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    Console.WriteLine("OK.You are conneceted");
+
+                    foreach (var buchung in selectedBuchung)
+                    {
+                     
+                        if (buchung.ID == 0)
+                        {
+                            Console.WriteLine($"Buchung o ID 0 został pominięty (nie można zaktualizować rekordu bez ID).");
+                            continue;
+                        }
+
+                     
+                        buchung.Buchungsbeginn = DatePickerBuchungsBegin.DisplayDate;
+                        buchung.Buchungsende = DatePickerBuchungsEnde.DisplayDate;
+
+                        buchung.Geaendert_am = DateTime.Now;
+
+                  
+                        string query = @"
+                UPDATE buchung
+                SET 
+                    Buchungsbeginn = @buchungsbeginn,
+                    Buchungsende = @buchungsende,
+                    Geaendert_Von = @Geaendert_Von,
+                    Geaendert_Am = @Geaendert_Am
+                WHERE 
+                    ID = @Id;";
+
+                        try
+                        {
+                            using (var cmd = new MySqlCommand(query, connection))
+                            {
+                                cmd.Parameters.AddWithValue("@Id", buchung.ID);
+                                cmd.Parameters.AddWithValue("@buchungsbeginn", buchung.Buchungsbeginn);
+                                cmd.Parameters.AddWithValue("@buchungsende", buchung.Buchungsende);
+                                cmd.Parameters.AddWithValue("@Geaendert_Von", buchung.Geaendert_von);
+                                cmd.Parameters.AddWithValue("@Geaendert_Am", buchung.Geaendert_am);
+
+                       
+                                int rowsAffected = cmd.ExecuteNonQuery();
+
+                                if (rowsAffected > 0)
+                                {
+                                    Console.WriteLine($"Buchung o ID {buchung.ID} został pomyślnie zapisany.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Nie znaleziono rekordu o ID {ausruestung.ID}.");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Błąd podczas zapisywania Ausruestung o ID {ausruestung.ID}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void btnBuchungLoeschen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                FileEncription fileEncription = new FileEncription();
+                string connectionString = fileEncription.ConvertToPlainString(secureString);
+
+                int id = 0;
+
+          
+                if (B_DataGrid.SelectedItem is DataRowView rowView)
+                {
+                    if (int.TryParse(rowView["BuchungID"].ToString(), out id) && id > 0)
+                    {
+             
+                    }
+                    else
+                    {
+                        MessageBox.Show("Nieprawidłowy identyfikator rekordu!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Bitte Datensatz wählen!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        
+                        cmd.CommandText = "DELETE FROM buchung WHERE ID = @id";
+                        cmd.Parameters.AddWithValue("@id", id);
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Gut gemacht.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show($"UPS.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                    }
+                    
+                  
+                    A_loeschen.IsEnabled = false;
+                    A_Speichern.IsEnabled = false;
+                    LoadBuchungen();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
         }
     }
 }
+
 	
 	
 

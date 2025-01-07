@@ -1,0 +1,1 @@
+﻿Server=localhost;Uid=;Pwd=;Database=vwa;Port=3306
