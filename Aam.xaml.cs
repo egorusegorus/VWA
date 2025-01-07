@@ -658,8 +658,8 @@ namespace VWA
             {
                 connection.Open();
                 string query = @"
-            GRANT SELECT, INSERT, UPDATE, DELETE ON VWA.* TO @Benutzername@localhost;
-            GRANT benutzer_role TO @Benutzername@localhost;";
+            GRANT SELECT, INSERT, UPDATE, DELETE ON vwa.* TO @Benutzername@localhost;
+            ";//GRANT benutzer_role TO @Benutzername@localhost;";
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     cmd.Parameters.AddWithValue("@Benutzername", benutzername);
