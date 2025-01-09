@@ -56,25 +56,7 @@ namespace VWA
 			return role;
 		}
 
-		public void ConnectToDB1(string connectionString)
-		{
-			try
-			{
-				// Erstellung die Verbindung mit DB
-				using (var connection = new MySqlConnection(connectionString))
-				{
-					connection.Open();
-					MessageBox.Show("Sie sind in System!", "Gut gemacht!", MessageBoxButton.OK, MessageBoxImage.Information);
-					MainWindow mainWindow = new MainWindow();
-					
-					connection.Close();
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show($"Fehler während Verbindung mit DB. {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-		}
+		
 	}
 	}
 

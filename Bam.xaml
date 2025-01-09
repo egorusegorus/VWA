@@ -14,13 +14,13 @@
         <Grid Grid.Column="1" Margin="5,0,5,0">
             <Grid >
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="20"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
-                    <RowDefinition Height="23"></RowDefinition>
-                    <RowDefinition Height="27"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
-                    <RowDefinition Height="25"></RowDefinition>
-                    <RowDefinition Height="25"></RowDefinition>
-                    <RowDefinition Height="25"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
@@ -28,7 +28,7 @@
                 </Grid.RowDefinitions>
                 <Button x:Name="btnMeineBuchungen" Grid.Row="0" Content="Meine Buchungen" Click="btnMeineBuchungen_Click" Height="25" VerticalAlignment="Top"/>
                 <Button x:Name="btnBuchen" Grid.Row="2" Content="Buchen" Margin="0,2,0,23" Grid.RowSpan="2" IsEnabled="False" Click="btnBuchen_Click"></Button>
-                <Button x:Name="btnVerlenger" Grid.Row="8" Content="Buchung Verlengern" IsEnabled="False" Click="btnVerlenger_Click"></Button>
+                <Button x:Name="btnVerlenger" Grid.Row="8" Content="Buchung Verlängern" IsEnabled="False" Click="btnVerlenger_Click"></Button>
                 <Button x:Name="btnBuchungLöschen" Grid.Row="4" Content="Buchung Löschen" IsEnabled="False" Click="btnBuchungLöschen_Click" Height="25" VerticalAlignment="Top"/>
                 <DatePicker x:Name="VerlengerungDatenPicker" Grid.Row="6" IsEnabled="False" SelectedDateChanged="VerlengerungDatenPicker_SelectedDateChanged"></DatePicker>
             </Grid>
@@ -37,7 +37,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="25"></RowDefinition>
-                    <RowDefinition Height="25"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
                     <RowDefinition Height="25"></RowDefinition>
 
@@ -51,7 +51,7 @@
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Content="Buchungsbeginn"></Label>
                     <Label Grid.Column="1" Content="Buchungsende"></Label>
-                    <Label Grid.Column="2" Content="Art Der Ausruestung"></Label>
+                    <Label Grid.Column="2" Content="Art der Ausrüstung"></Label>
                 </Grid>
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>

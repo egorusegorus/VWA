@@ -92,7 +92,7 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Ausruestung">
+            <TabItem Header="Ausrüstung">
                 <Grid Background="#FFE5E5E5">
                     
                     <Grid.RowDefinitions>
@@ -102,11 +102,11 @@
                     <Grid Grid.Row="0" Grid.ColumnSpan="2">
                         <Grid >
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="25"/>
+                                <RowDefinition Height="30"/>
                                 <RowDefinition Height="10"/>
                                 <RowDefinition Height="25"/>
                                 <RowDefinition Height="10"/>
-                                <RowDefinition Height="25"/>
+                                <RowDefinition Height="30"/>
                                 <RowDefinition Height="10"/>
                                 <RowDefinition Height="25"/>
                                 <RowDefinition Height="10"/>
@@ -120,7 +120,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Button Content="Ausrüstung zeigen" Grid.Column="0" Click="Button_Click"></Button>
-                                <Label Content="ArtDerAusruestung" Grid.Column="1"></Label>
+                                <Label Content="Art der Ausrüstung" Grid.Column="1"></Label>
                                 <Label Content="Marke" Grid.Column="2"></Label>
                                 <Label Content="Model" Grid.Column="3"></Label>
                             </Grid>

@@ -308,7 +308,7 @@ namespace VWA
                 }
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
-                    MessageBox.Show("Connection string jest pusty!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("ConnectionStrong ist leer!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
@@ -581,6 +581,7 @@ namespace VWA
                 InsertUserToDatabase(connectionString, benutzername, nachname, vorname, email, geaendert_von, dateTime);
                 CreateMysqlUser(connectionString, benutzername, password);
                 GrantPermissions(connectionString, benutzername);
+                
 
                 MessageBox.Show("Benutzer erfolgreich hinzugefügt!", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -657,16 +658,66 @@ namespace VWA
             using (var connection = new MySqlConnection(connectionString))
             {
                 connection.Open();
-                string query = @"
-            GRANT SELECT, INSERT, UPDATE, DELETE ON vwa.* TO @Benutzername@localhost;
-            ";//GRANT benutzer_role TO @Benutzername@localhost;";
-                using (var cmd = new MySqlCommand(query, connection))
+
+                try
                 {
-                    cmd.Parameters.AddWithValue("@Benutzername", benutzername);
-                    cmd.ExecuteNonQuery();
+                    // Pierwsze zapytanie: Przyznanie uprawnień
+                    string query1 = @"GRANT SELECT, INSERT, UPDATE, DELETE ON vwa.* TO @Benutzername@'localhost';";
+                    using (var cmd1 = new MySqlCommand(query1, connection))
+                    {
+                        cmd1.Parameters.AddWithValue("@Benutzername", benutzername);
+                        cmd1.ExecuteNonQuery();
+                    }
+
+                    // Drugie zapytanie: Przyznanie roli
+                    string query2 = @"GRANT benutzer_role TO @Benutzername@'localhost';";
+                    using (var cmd2 = new MySqlCommand(query2, connection))
+                    {
+                        cmd2.Parameters.AddWithValue("@Benutzername", benutzername);
+                        cmd2.ExecuteNonQuery();
+                    }
+
+                    // Ustawienie roli jako domyślnej (opcjonalnie)
+                    string query3 = @"SET DEFAULT ROLE 'benutzer_role' TO @Benutzername@'localhost';";
+                    using (var cmd3 = new MySqlCommand(query3, connection))
+                    {
+                        cmd3.Parameters.AddWithValue("@Benutzername", benutzername);
+                        cmd3.ExecuteNonQuery();
+                    }
+
+                    Console.WriteLine("Uprawnienia i rola zostały nadane pomyślnie.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Błąd podczas nadawania uprawnień: {ex.Message}");
+                }
+                finally
+                {
+                    LoadDate();
                 }
             }
         }
+
+
+        /*private void GrantPermissions(string connectionString, string benutzername)
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = @"GRANT SELECT, INSERT, UPDATE, DELETE ON vwa.* TO @Benutzername@localhost;";
+                    string query2 = @"GRANT benutzer_role TO @Benutzername@localhost;";
+                    using (var cmd = new MySqlCommand(query, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@Benutzername", benutzername);
+                        cmd.ExecuteNonQuery();
+                       
+                    }
+                LoadDate();
+
+            }
+            }*/
+
+
 
         private void ClearFields()
         {
@@ -847,7 +898,7 @@ namespace VWA
                 ausruestung.Model = txtModel.Text.Trim();
                 ausruestung.Beschreibung = txtBeschreibung.Text.Trim();
                 ausruestung.Zustand = txtZustand.Text.Trim();
-                string geaendert_von = "system";
+                string geaendert_von = "Administrator";
                 DateTime dateTime = DateTime.Now;
 
 
@@ -959,14 +1010,19 @@ namespace VWA
                             Console.WriteLine($"Buchung o ID 0 został pominięty (nie można zaktualizować rekordu bez ID).");
                             continue;
                         }
+                        if (DatePickerBuchungsBegin.SelectedDate.HasValue && DatePickerBuchungsEnde.SelectedDate.HasValue)
+                        {
+                            buchung.Buchungsbeginn = DatePickerBuchungsBegin.SelectedDate.Value;
+                            buchung.Buchungsende = DatePickerBuchungsEnde.SelectedDate.Value;
+                            buchung.Geaendert_am = DateTime.Now;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Proszę wybrać daty początkową i końcową.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
 
-                     
-                        buchung.Buchungsbeginn = DatePickerBuchungsBegin.DisplayDate;
-                        buchung.Buchungsende = DatePickerBuchungsEnde.DisplayDate;
+                        
 
-                        buchung.Geaendert_am = DateTime.Now;
-
-                  
                         string query = @"
                 UPDATE buchung
                 SET 
@@ -1004,12 +1060,13 @@ namespace VWA
                         {
                             Console.WriteLine($"Błąd podczas zapisywania Ausruestung o ID {ausruestung.ID}: {ex.Message}");
                         }
+                        LoadBuchungen();
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+               // MessageBox.Show($"Błąd: {ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
